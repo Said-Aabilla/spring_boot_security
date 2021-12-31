@@ -23,6 +23,7 @@ import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
+import static com.example.springsecurity.constants.UserImplConstants.*;
 import static com.example.springsecurity.enumeration.Role.ROLE_USER;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository,BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -49,9 +50,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = userRepository.findUserByUsername(username);
         if (user == null) {
             //log it on the console
-            LOGGER.error("User not found by username: " + username);
+            LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
             //throw exception
-            throw new UsernameNotFoundException("User not found by username: " + username);
+            throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
         } else {
             //if the user is found we want to update it first
             user.setLastLoginDateDisplay(user.getLastLoginDate());
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User register(String firstName, String lastName, String username, String email) throws EmailExistException, UsernameExistException {
-        validateNewUsernameAndEmail(EMPTY, username,email);
+        validateNewUsernameAndEmail(EMPTY, username, email);
         User user = new User();
         user.setUserId(generateUserId());
         String password = generatePassword();
@@ -81,13 +82,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setRole(ROLE_USER.name());
         user.setAuthorities(ROLE_USER.getUserAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl());
-        LOGGER.info("user password: "+ password);
+        LOGGER.info("user password: " + password);
         userRepository.save(user);
         return user;
     }
 
     private String getTemporaryProfileImageUrl() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/image/profile/temp").toUriString();
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path(DEFAULT_USER_IMAGE_PATH).toUriString();
     }
 
     private String encodePassword(String password) {
@@ -103,30 +104,29 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UsernameExistException, EmailExistException {
+        User userByNewUsername = findUserByUsername(newUsername);
+        User userByNewEmail = findUserByEmail(newEmail);
+
         if (StringUtils.isNotBlank(currentUsername)) {
             User currentUser = findUserByUsername(currentUsername);
             if (currentUser == null) {
-                throw new UsernameNotFoundException("No user found by username: " + currentUsername);
+                throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
             }
 
-            User userByNewUsername = findUserByUsername(newUsername);
             if (userByNewUsername != null && !currentUser.getId().equals(userByNewUsername.getId())) {
-                throw new UsernameExistException("Username already exists!");
+                throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
             }
 
-            User userByNewEmail = findUserByEmail(newEmail);
             if (userByNewEmail != null && !currentUser.getId().equals(userByNewEmail.getId())) {
-                throw new EmailExistException("Email already exists!");
+                throw new EmailExistException(EMAIL_ALREADY_EXISTS);
             }
             return currentUser;
         } else {
-            User userByUsername = findUserByUsername(newUsername);
-            if (userByUsername != null) {
-                throw new UsernameExistException("Username already exists!");
+            if (userByNewUsername != null) {
+                throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
             }
-            User userByEmail = findUserByEmail(newEmail);
-            if (userByEmail != null ) {
-                throw new EmailExistException("Email already exists!");
+            if (userByNewEmail != null) {
+                throw new EmailExistException(EMAIL_ALREADY_EXISTS);
             }
         }
         return null;
@@ -134,16 +134,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public List<User> getUsers() {
-        return null;
+        return userRepository.findAll();
     }
 
     @Override
     public User findUserByUsername(String username) {
-        return null;
+        return userRepository.findUserByUsername(username);
     }
 
     @Override
     public User findUserByEmail(String email) {
-        return null;
+        return userRepository.findUserByEmail(email);
     }
 }
