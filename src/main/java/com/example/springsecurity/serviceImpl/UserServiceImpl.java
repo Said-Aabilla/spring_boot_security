@@ -1,9 +1,9 @@
 package com.example.springsecurity.serviceImpl;
 
+import com.example.springsecurity.domain.UserPrincipal;
 import com.example.springsecurity.exception.domain.EmailExistException;
 import com.example.springsecurity.exception.domain.UsernameExistException;
 import com.example.springsecurity.model.user.User;
-import com.example.springsecurity.domain.UserPrincipal;
 import com.example.springsecurity.repository.UserRepository;
 import com.example.springsecurity.service.UserService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -35,14 +35,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
+    private LoginAttemptServiceImpl loginAttemptService;
     //to show the error on the logger you will need this:
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
 
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptServiceImpl loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -54,6 +56,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             //throw exception
             throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
         } else {
+            validateLoginAttempt(user);
             //if the user is found we want to update it first
             user.setLastLoginDateDisplay(user.getLastLoginDate());
             user.setLastLoginDate(new Date());
@@ -62,6 +65,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             UserPrincipal userPrincipal = new UserPrincipal(user);
             LOGGER.info("Returning user found by username: " + username);
             return userPrincipal;
+        }
+    }
+
+    //HELPER Function to check the login attempts
+    private void validateLoginAttempt(User user){
+        if (user.isNotLocked()) {
+            if (loginAttemptService.hasExceededLoginAttempts(user.getUsername())) {
+                user.setNotLocked(false);
+            } else {
+                user.setNotLocked(true);
+            }
+        } else {
+            loginAttemptService.evictUserFromLoginAttemptCache(user.getUsername());
         }
     }
 
