@@ -36,15 +36,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private LoginAttemptServiceImpl loginAttemptService;
+    private EmailService emailService;
     //to show the error on the logger you will need this:
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
 
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptServiceImpl loginAttemptService) {
+    public UserServiceImpl(UserRepository userRepository,
+                           BCryptPasswordEncoder passwordEncoder,
+                           LoginAttemptServiceImpl loginAttemptService,
+                           EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -98,7 +103,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setRole(ROLE_USER.name());
         user.setAuthorities(ROLE_USER.getUserAuthorities());
         user.setProfileImageUrl(getTemporaryProfileImageUrl());
-        LOGGER.info("user password: " + password);
+        emailService.sendNewPasswordEmail(firstName, password,email);
         userRepository.save(user);
         return user;
     }

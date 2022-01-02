@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Email username and password ###
+src/main/java/com/example/springsecurity/constants/EmailCredentials.java
