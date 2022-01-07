@@ -1,4 +1,4 @@
-package com.example.springsecurity.service;
+package com.example.springsecurity.service.facade;
 
 public interface LoginAttemptService {
 

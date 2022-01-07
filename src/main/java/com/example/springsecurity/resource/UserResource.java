@@ -1,12 +1,11 @@
 package com.example.springsecurity.resource;
 
-import com.example.springsecurity.constants.SecurityConstant;
 import com.example.springsecurity.domain.UserPrincipal;
 import com.example.springsecurity.exception.domain.EmailExistException;
 import com.example.springsecurity.exception.domain.ExceptionHandling;
 import com.example.springsecurity.exception.domain.UsernameExistException;
 import com.example.springsecurity.model.user.User;
-import com.example.springsecurity.service.UserService;
+import com.example.springsecurity.service.facade.UserService;
 import com.example.springsecurity.utility.JWTTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +38,7 @@ public class UserResource extends ExceptionHandling {
 
     @PostMapping( "/register")
     public ResponseEntity<User> register(@RequestBody User user) throws EmailExistException, UsernameExistException {
-       User newUser = userService.register(user.getFirstname(),user.getLastname(), user.getUsername(), user.getEmail());
+       User newUser = userService.register(user);
        return new ResponseEntity<>(newUser, OK);
     }
 

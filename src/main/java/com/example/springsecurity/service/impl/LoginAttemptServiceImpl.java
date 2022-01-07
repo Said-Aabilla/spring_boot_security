@@ -1,6 +1,6 @@
-package com.example.springsecurity.serviceImpl;
+package com.example.springsecurity.service.impl;
 
-import com.example.springsecurity.service.LoginAttemptService;
+import com.example.springsecurity.service.facade.LoginAttemptService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;

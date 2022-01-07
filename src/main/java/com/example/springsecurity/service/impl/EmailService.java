@@ -1,4 +1,4 @@
-package com.example.springsecurity.serviceImpl;
+package com.example.springsecurity.service.impl;
 
 import com.sun.mail.smtp.SMTPTransport;
 import org.springframework.stereotype.Service;
